@@ -848,24 +848,23 @@ export function PaymentPortalView({ data, preselectedBillSlug }: PaymentPortalVi
                   <div className="flex flex-col items-center shrink-0">
                     <div
                       onClick={() => setIsQrisZoomOpen(true)}
-                      className="group relative size-44 sm:size-48 rounded-2xl overflow-hidden border-2 border-border/80 bg-white p-2 shadow-sm cursor-pointer hover:border-primary/60 transition-all"
+                      className="group relative w-fit max-w-[200px] rounded-2xl overflow-hidden border-2 border-border/80 bg-white shadow-sm cursor-pointer hover:border-primary/60 transition-all flex items-center justify-center"
                       title="Klik untuk memperbesar QRIS"
                     >
                       {selectedMethod.qrisImageUrl ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={selectedMethod.qrisImageUrl}
                           alt="QRIS Kas Angkatan"
-                          fill
-                          className="object-contain p-1"
-                          unoptimized
+                          className="max-h-48 w-auto object-contain block"
                         />
                       ) : (
-                        <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                        <div className="flex size-44 items-center justify-center text-xs text-muted-foreground">
                           QRIS tidak tersedia
                         </div>
                       )}
                       {/* Overlay hint saat di-hover */}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium gap-1 rounded-2xl">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-xs font-medium gap-1">
                         <MagnifyingGlassPlusIcon className="size-6" />
                         <span>Klik Perbesar</span>
                       </div>
@@ -1110,14 +1109,15 @@ export function PaymentPortalView({ data, preselectedBillSlug }: PaymentPortalVi
             </DialogHeader>
 
             {selectedMethod?.qrisImageUrl && (
-              <div className="relative mx-auto size-64 sm:size-72 rounded-2xl overflow-hidden border bg-white p-2 shadow-sm my-2">
-                <Image
-                  src={selectedMethod.qrisImageUrl}
-                  alt="QRIS Kas"
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
+              <div className="flex justify-center my-2">
+                <div className="relative max-h-[380px] sm:max-h-[420px] w-fit overflow-hidden rounded-xl border border-border/80 bg-white shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedMethod.qrisImageUrl}
+                    alt="QRIS Kas"
+                    className="max-h-[360px] sm:max-h-[400px] w-auto max-w-full object-contain block mx-auto"
+                  />
+                </div>
               </div>
             )}
 

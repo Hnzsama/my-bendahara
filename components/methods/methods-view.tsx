@@ -576,16 +576,16 @@ export function MethodsView({ data }: MethodsViewProps) {
             </DialogHeader>
 
             <div className="flex flex-col items-center justify-center gap-3 py-3">
-              <div className="relative aspect-square w-64 overflow-hidden rounded-xl border-2 border-border bg-white p-3 shadow-md flex items-center justify-center">
+              <div className="relative max-h-[380px] w-fit overflow-hidden rounded-xl border-2 border-border bg-white shadow-md flex items-center justify-center">
                 {previewQris.qrisImageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={previewQris.qrisImageUrl}
                     alt={`Barcode QRIS ${previewQris.name}`}
-                    className="size-full object-contain"
+                    className="max-h-[350px] w-auto max-w-full object-contain block"
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground p-8">
                     <QrCodeIcon className="size-16" />
                     <span className="text-xs">Gambar QRIS belum diunggah</span>
                   </div>
