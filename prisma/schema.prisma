@@ -1,0 +1,152 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// 1. TABEL KELAS (Class)
+// -------------------------------------------------------------
+model Class {
+  id           String    @id @default(cuid())
+  name         String    @unique // Contoh: "TI-2023-A", "TI-2023-B"
+  academicYear String    // Contoh: "2023/2024"
+  description  String?   // Catatan kelas opsional
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  students     Student[]
+
+  @@map("classes")
+}
+
+// -------------------------------------------------------------
+// 2. TABEL MAHASISWA (Student)
+// -------------------------------------------------------------
+model Student {
+  id           String        @id @default(cuid())
+  nim          String?       @unique // Nomor Induk Mahasiswa (opsional)
+  name         String        // Nama Lengkap Mahasiswa
+  phone        String?       // Kontak WhatsApp
+  classId      String
+  class        Class         @relation(fields: [classId], references: [id], onDelete: Restrict)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  transactions Transaction[]
+
+  @@index([classId])
+  @@index([name])
+  @@map("students")
+}
+
+// -------------------------------------------------------------
+// 3. TABEL METODE PEMBAYARAN (PaymentMethod) - PIC Bendahara
+// -------------------------------------------------------------
+model PaymentMethod {
+  id            String        @id @default(cuid())
+  name          String        // Nama kanal, contoh: "BCA Kas Angkatan", "QRIS Kas 1"
+  type          String        // "QRIS" | "BANK_TRANSFER" | "EWALLET"
+  bankName      String        // "BCA", "Mandiri", "Gopay", "Dana", "ShopeePay"
+  accountNumber String        // Nomor Rekening atau Nomor E-Wallet
+  accountHolder String        // Atas Nama Pemilik Rekening
+  picName       String        // PIC Bendahara: "Siti Nurhaliza (Bendahara 1)"
+  qrisImageUrl  String?       // Path file gambar QRIS jika type == "QRIS"
+  instructions  String?       // Panduan transfer spesifik
+  isActive      Boolean       @default(true) // Switch aktif/non-aktifkan kanal
+  displayOrder  Int           @default(0)    // Urutan tampilan di form pembayaran
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  transactions  Transaction[]
+
+  @@index([isActive])
+  @@index([picName])
+  @@map("payment_methods")
+}
+
+// -------------------------------------------------------------
+// 4. TABEL TAGIHAN IURAN (Bill)
+// -------------------------------------------------------------
+model Bill {
+  id           String        @id @default(cuid())
+  slug         String?       @unique // Slug URL unik untuk dibagikan ke grup
+  title        String        // Contoh: "Iuran Kas Bulan Oktober 2026"
+  description  String?       // Detail kegunaan kas
+  amount       Int           // Nominal tagihan dalam Rupiah
+  dueDate      DateTime?     // Batas waktu pembayaran
+  academicTerm String?       // Contoh: "Ganjil 2026/2027"
+  isActive     Boolean       @default(true)
+  googleSheetId  String?     // ID spreadsheet spesifik untuk tagihan ini
+  googleSheetUrl String?     // Link langsung spreadsheet untuk tagihan ini
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  transactions Transaction[]
+
+  @@index([isActive])
+  @@index([slug])
+  @@map("bills")
+}
+
+// -------------------------------------------------------------
+// 5. TABEL TRANSAKSI KAS (Transaction)
+// -------------------------------------------------------------
+model Transaction {
+  id              String        @id @default(cuid())
+  referenceCode   String        @unique // Kode unik: "KAS-20261012-XXXX"
+  studentId       String
+  student         Student       @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  billId          String
+  bill            Bill          @relation(fields: [billId], references: [id], onDelete: Restrict)
+  paymentMethodId String
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Restrict)
+  
+  amountPaid      Int           // Nominal yang ditransfer mahasiswa
+  proofImageUrl   String        // Path berkas struk di /uploads/proofs/
+  studentNotes    String?       // Catatan dari mahasiswa (opsional)
+  
+  status          String        @default("PENDING") // "PENDING" | "APPROVED" | "REJECTED"
+  rejectionReason String?       // Alasan penolakan jika status == "REJECTED"
+  
+  verifiedById    String?
+  verifiedBy      Admin?        @relation(fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt      DateTime?
+
+  // Integrasi Google Spreadsheet
+  sheetSyncStatus String        @default("NOT_SYNCED") // "NOT_SYNCED" | "SYNCED" | "FAILED"
+  sheetSyncedAt   DateTime?
+  sheetErrorLog   String?       // Pesan error jika sync gagal
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([studentId])
+  @@index([billId])
+  @@index([paymentMethodId])
+  @@index([status])
+  @@index([sheetSyncStatus])
+  @@map("transactions")
+}
+
+// -------------------------------------------------------------
+// 6. TABEL AKUN BENDAHARA / ADMIN (Admin)
+// -------------------------------------------------------------
+model Admin {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  username     String        @unique
+  passwordHash String        // Terenkripsi bcrypt
+  fullName     String        // Contoh: "Siti Nurhaliza (Bendahara 1)"
+  role         String        @default("TREASURER") // "TREASURER" | "SUPER_ADMIN"
+  phone        String?
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  verifiedTransactions Transaction[]
+
+  @@map("admins")
+}
